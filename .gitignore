@@ -8,6 +8,7 @@
 
 # Exclude env files
 **/.*.env
+**/.env
 
 # For macOS
 .DS_Store
