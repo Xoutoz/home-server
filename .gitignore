@@ -1,0 +1,13 @@
+# Exclude binaries
+*.bin
+*.jar
+*.tar
+*.zip
+*.gzip
+*.tgz
+
+# Exclude env files
+**/.*.env
+
+# For macOS
+.DS_Store
