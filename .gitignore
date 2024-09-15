@@ -6,6 +6,9 @@
 *.gzip
 *.tgz
 
+# Exclude python venv
+.venv
+
 # Exclude env files
 **/.*.env
 **/.env

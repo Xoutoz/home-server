@@ -1,0 +1,134 @@
+version: "3"
+
+networks:
+  default:
+    driver: bridge
+    name: media-server
+
+services:
+  plex:
+    container_name: plex
+    image: linuxserver/plex
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - VERSION=latest
+      - TZ=Europe/Lisbon
+      - HOSTNAME='plex.elysium.home'
+      - ADVERTISE_IP='http://plex.elysium.home:32400,http://192.168.1.3:32400'
+      - ALLOWED_NETWORKS='192.168.1.0/24,172.16.0.0/12'
+    volumes:
+      - ~/media-server/plex/config:/config
+      - ~/media-server/media:/data/media
+    networks:
+      - default
+    ports:
+      - 32400:32400/tcp
+      - 3005:3005/tcp
+      - 8324:8324/tcp
+      - 1900:1900/udp
+      - 32410:32410/udp
+      - 32412:32412/udp
+      - 32413:32413/udp
+      - 32414:32414/udp
+      - 32469:32469/tcp
+    expose:
+      - 32400
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.plex.entrypoints=http"
+      - "traefik.http.routers.plex.rule=Host(`plex.elysium.home`)"
+      - "traefik.http.routers.plex.service=plex"
+      - "traefik.http.services.plex.loadbalancer.server.port=32400"
+      - "traefik.tcp.routers.plex.entrypoints=plex"
+      - "traefik.tcp.routers.plex.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.plex.service=plex"
+      - "traefik.tcp.services.plex.loadbalancer.server.port=32400"
+
+  deluge:
+    container_name: deluge
+    image: linuxserver/deluge
+    restart: always
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Lisbon
+    volumes:
+      - ~/media-server/deluge/config:/config
+      - ~/media-server/media/torrents:/data/torrents
+    networks:
+      - default
+    ports:
+      - 6881:6881
+      - 6881:6881/udp
+    expose:
+      - 8112
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.deluge.entrypoints=http"
+      - "traefik.http.routers.deluge.rule=Host(`deluge.elysium.home`)"
+      - "traefik.http.routers.deluge.service=deluge"
+      - "traefik.http.services.deluge.loadbalancer.server.port=8112"
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    restart: always
+    environment:
+      - PGID=1000
+      - PUID=1000
+      - TZ=Europe/Lisbon
+    volumes:
+      - ~/media-server/radarr/config:/config
+      - ~/media-server/media:/data
+    networks:
+      - default
+    expose:
+      - 7878
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=7878"
+      - "traefik.http.routers.radarr.entrypoints=http"
+      - "traefik.http.routers.radarr.rule=Host(`radarr.elysium.home`)"
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    restart: always
+    environment:
+      - PGID=1000
+      - PUID=1000
+      - TZ=Europe/Lisbon
+    volumes:
+      - ~/media-server/sonarr/config:/config
+      - ~/media-server/media:/data
+    networks:
+      - default
+    expose:
+      - 8989
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=8989"
+      - "traefik.http.routers.sonarr.entrypoints=http"
+      - "traefik.http.routers.sonarr.rule=Host(`sonarr.elysium.home`)"
+
+  prowlarr:
+    image: linuxserver/prowlarr
+    container_name: prowlarr
+    restart: always
+    environment:
+      - PGID=1000
+      - PUID=1000
+      - TZ=Europe/Lisbon
+    volumes:
+      - ~/media-server/prowlarr/config:/config
+    networks:
+      - default
+    expose:
+      - 9696
+    labels:
+      - "traefik.enable=true"
+      - "traefik.port=9696"
+      - "traefik.http.routers.prowlarr.entrypoints=http"
+      - "traefik.http.routers.prowlarr.rule=Host(`prowlarr.elysium.home`)"

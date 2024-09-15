@@ -1,0 +1,41 @@
+version: "3"
+
+networks:
+  default:
+    name: pihole
+
+# More info at https://github.com/pi-hole/docker-pi-hole/ and https://docs.pi-hole.net/
+services:
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:2024.07.0 # https://hub.docker.com/r/pihole/pihole/tags
+    hostname: elysium
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+    expose:
+      - "80/tcp"
+      - "443/tcp"
+    dns:
+      - 127.0.0.1
+      - 9.9.9.9
+    environment:
+      TZ: Europe/Lisbon
+      WEBPASSWORD: admin
+      VIRTUAL_HOST: pihole.elysium.home
+      PIHOLE_DNS_: 9.9.9.9;149.112.112.112;1.1.1.1
+    volumes:
+      - '~/pihole/etc-pihole/:/etc/pihole/'
+      - '~/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - default
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.pihole.entrypoints=http"
+      - "traefik.http.routers.pihole.rule=Host(`pihole.elysium.home`)"
+      - "traefik.http.routers.pihole.service=pihole"
+      - "traefik.http.services.pihole.loadbalancer.server.port=80"
+    restart: unless-stopped

@@ -4,7 +4,15 @@ networks:
   default:
     name: reverse-proxy
     driver: bridge
+  pihole:
+    external: true
+  grocy:
+    external: true
   firefly_iii:
+    external: true
+  ha:
+    external: true
+  media-server:
     external: true
 
 services:
@@ -17,7 +25,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.http.address=:80"
-    #  - "--entrypoints.plex.address=:32400"
+      - "--entrypoints.plex.address=:32400"
     ports:
       - 80:80
       # - 32400:32400/tcp
@@ -27,7 +35,11 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     networks:
       - default
+      - pihole
+      - grocy
       - firefly_iii
+      - ha
+      - media-server
     labels:
       - "traefik.enable=true"
       - "traefik.port=8080"

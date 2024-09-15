@@ -19,16 +19,15 @@ services:
     networks:
       - frontend
       - backend
-    ports:
-      - 9090:8080
     depends_on:
       - db
     labels: # to be as dynamic as possible
       - "traefik.enable=true"
+      - "traefik.port=80"
       - "traefik.http.routers.firefly.entrypoints=http"
       - "traefik.http.routers.firefly.rule=Host(`firefly.elysium.home`)"
       - "traefik.http.routers.firefly.service=firefly"
-      - "traefik.http.services.firefly.loadbalancer.server.port=9090"
+      - "traefik.http.services.firefly.loadbalancer.server.port=8080"
 
   db:
     image: postgres:16-alpine # set version as var

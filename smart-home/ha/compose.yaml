@@ -1,0 +1,67 @@
+version: '3.8'
+
+networks:
+  backend:
+    driver: bridge
+  frontend:
+    driver: bridge
+    name: ha
+
+services:
+  ha:
+    image: homeassistant/home-assistant:2024.7.4
+    container_name: ha
+    restart: unless-stopped
+    depends_on:
+      - zigbee2mqtt
+      - mosquitto
+    volumes:
+      - ~/ha/:/config
+      - /etc/localtime:/etc/localtime:ro
+    expose:
+      - 8123
+    networks:
+      - frontend
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ha.entrypoints=http"
+      - "traefik.http.routers.ha.rule=Host(`ha.elysium.home`)"
+      - "traefik.http.routers.ha.service=ha"
+      - "traefik.http.services.ha.loadbalancer.server.port=8123"
+
+  zigbee2mqtt:
+    image: koenkk/zigbee2mqtt
+    container_name: zigbee2mqtt
+    restart: unless-stopped
+    privileged: true
+    environment:
+      - TZ="Europe/Lisbon"
+    devices:
+      - /dev/serial/by-id/usb-dresden_elektronik_ingenieurtechnik_GmbH_ConBee_II_DE2598345-if00:/dev/ttyACM0
+    volumes:
+      - ~/ha/zigbee2mqtt:/app/data
+      - /run/udev:/run/udev:ro
+    expose:
+      - 8081
+    networks:
+      - frontend
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mqtt.entrypoints=http"
+      - "traefik.http.routers.mqtt.rule=Host(`mqtt.elysium.home`)"
+      - "traefik.http.routers.mqtt.service=mqtt"
+      - "traefik.http.services.mqtt.loadbalancer.server.port=8081"
+    
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: mosquitto
+    restart: unless-stopped
+    volumes:
+      - ~/ha/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    expose:
+      - 1883
+      - 9001
+    networks:
+      - backend
